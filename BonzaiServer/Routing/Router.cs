@@ -10,6 +10,9 @@ namespace Bonzai.Routing
     /// </summary>
     public class Router
     {
+        /// <summary>
+        /// Holds the actual handler delegates and their message types
+        /// </summary>
         private readonly Dictionary<Type, Delegate> _handlers;
 
         public Router()
