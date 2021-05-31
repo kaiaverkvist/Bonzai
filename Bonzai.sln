@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BonzaiServer", "BonzaiServer\BonzaiServer.csproj", "{5ECC5BA5-92BB-4758-A355-66054604DBA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BonzaiServer.Tests", "BonzaiServer.Tests\BonzaiServer.Tests.csproj", "{6BB34859-63A7-4151-A061-546AB2778E01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5ECC5BA5-92BB-4758-A355-66054604DBA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECC5BA5-92BB-4758-A355-66054604DBA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECC5BA5-92BB-4758-A355-66054604DBA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECC5BA5-92BB-4758-A355-66054604DBA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BB34859-63A7-4151-A061-546AB2778E01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BB34859-63A7-4151-A061-546AB2778E01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BB34859-63A7-4151-A061-546AB2778E01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BB34859-63A7-4151-A061-546AB2778E01}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
