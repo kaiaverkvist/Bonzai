@@ -15,16 +15,30 @@ class Program
     static void Main(string[] args)
     {
 
-        Console.WriteLine($"Adding {typeof(ChatMessage).FullName}");
+            Console.WriteLine("Starting bonzai server...");
+            Console.WriteLine($"Adding {typeof(ChatMessage).FullName}");
 
-        _server = new BonzaiServer(new ServerOptions("0.0.0.0", 8085, NetworkScheme.NoSslScheme));
-        _server.Router.Register<ChatMessage>(c =>
-        {
-            Console.WriteLine($"Recevied chat message with text: {c.Text}");
-        });
-        _server.Start();
+            _server = new BonzaiServer(new ServerOptions("0.0.0.0", 8085, NetworkScheme.NoSslScheme));
 
-        while (Console.ReadLine() != "exit");
+            // Handle a chat message.
+            _server.Router.Register<ChatMessage>((sender, message) =>
+            {
+                Console.WriteLine($"Recevied chat message with text: {message.Text}");
+            });
+
+            // The OnConnected and OnDisconnected messages are special messages sent by Bonzai.
+            _server.Router.Register<OnConnected>((sender, msg) =>
+            {
+                Console.WriteLine($"Connection opened with {sender.ConnectionInfo.Id}");
+            });
+            _server.Router.Register<OnDisconnected>((sender, msg) =>
+            {
+                Console.WriteLine($"Connection closed by {sender.ConnectionInfo.Id}");
+            });
+            
+            _server.Start();
+
+            while (Console.ReadLine() != "exit");
     }
 }
 ```
