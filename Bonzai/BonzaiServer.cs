@@ -46,9 +46,9 @@ namespace Bonzai
         {
             _webSocketServer.Start((socket) =>
             {
-                socket.OnOpen = () => Router.Trigger(new OnConnected(socket));
-                socket.OnClose = () => Router.Trigger(new OnDisconnected(socket, "closed"));
-                socket.OnMessage = data => Router.ParseAndTrigger(data);
+                socket.OnOpen = () => Router.Trigger(socket, new OnConnected());
+                socket.OnClose = () => Router.Trigger(socket, new OnDisconnected("closed"));
+                socket.OnMessage = data => Router.ParseAndTrigger(socket, data);
             });
         }
 

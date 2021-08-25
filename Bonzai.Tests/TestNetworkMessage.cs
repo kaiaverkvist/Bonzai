@@ -2,11 +2,11 @@
 
 namespace Bonzai.Tests
 {
-    public class TestNetworkMessage : BaseNetworkMessage
+    public class TestNetworkMessage : INetworkMessage
     {
         public string Identifier { get; set; }
 
-        public TestNetworkMessage(string identifier) : base(null)
+        public TestNetworkMessage(string identifier)
         {
             Identifier = identifier;
         }

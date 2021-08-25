@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Bonzai.Routing;
+using Fleck;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -8,12 +9,14 @@ namespace Bonzai.Tests
 {
     public class RouterTests
     {
+        private WebSocketConnection _fakeConnection;
         private Router _router;
         
         [SetUp]
         public void Setup()
         {
             _router = new Router();
+            _fakeConnection = new WebSocketConnection(null, null, null, null, null);
         }
         
         [Test]
@@ -22,17 +25,17 @@ namespace Bonzai.Tests
             string expectedIdentifier = "123";
             Assert.IsEmpty(_router.GetHandlerDictionary(), "Router handler dictionary must be empty");
             
-            _router.Register<TestNetworkMessage>((message =>
+            _router.Register<TestNetworkMessage>((sender, message) =>
             {
                 TestContext.WriteLine("Triggered test message");
                 Assert.AreEqual(expectedIdentifier, message.Identifier);
-            }));
+            });
             Assert.IsNotEmpty(_router.GetHandlerDictionary());
             Assert.AreEqual(1, _router.GetHandlerDictionary().Count);
             
             // Create a test network message and try to trigger it.
             TestNetworkMessage testMessage = new TestNetworkMessage(expectedIdentifier);
-            int callCount = _router.Trigger(testMessage);
+            int callCount = _router.Trigger(_fakeConnection, testMessage);
             
             // Now check that we triggered an handler.
             Assert.AreEqual(1, callCount, "Must have called one (1) handler");  
@@ -45,29 +48,29 @@ namespace Bonzai.Tests
             float expectedX = 2.4f;
             Assert.IsEmpty(_router.GetHandlerDictionary(), "Router handler dictionary must be empty");
             
-            _router.Register<TestNetworkMessage>((message =>
+            _router.Register<TestNetworkMessage>((sender, message) =>
             {
                 TestContext.WriteLine("Triggered test message");
                 Assert.AreEqual(expectedIdentifier, message.Identifier);
-            }));
-            _router.Register<FloatNetworkMessage>((message =>
+            });
+            _router.Register<FloatNetworkMessage>((sender, message) =>
             {
                 TestContext.WriteLine("Triggered float message");
                 Assert.AreEqual(expectedX, message.X);
-            }));
+            });
             Assert.IsNotEmpty(_router.GetHandlerDictionary());
             Assert.AreEqual(2, _router.GetHandlerDictionary().Count);
             
             // Create a test network message and try to trigger it.
             TestNetworkMessage testMessage = new TestNetworkMessage(expectedIdentifier);
-            int callCount = _router.Trigger(testMessage);
+            int callCount = _router.Trigger(_fakeConnection, testMessage);
             
             // Now check that we triggered an handler.
             Assert.AreEqual(1, callCount, "Must have called one (1) handler");
             
             // Trigger our NO.2 message
             FloatNetworkMessage floatTestMessage = new FloatNetworkMessage(expectedX);
-            callCount = _router.Trigger(floatTestMessage);
+            callCount = _router.Trigger(_fakeConnection, floatTestMessage);
             Assert.AreEqual(1, callCount, "Must have called one (1) handler");
         }
         
@@ -77,7 +80,7 @@ namespace Bonzai.Tests
             Assert.IsEmpty(_router.GetHandlerDictionary(), "Router handler dictionary must be empty");
             
             TestNetworkMessage testMessage = new TestNetworkMessage("test_xyz");
-            int callCount = _router.Trigger(testMessage);
+            int callCount = _router.Trigger(new WebSocketConnection(null, null, null, null, null), testMessage);
             
             // Now check that we triggered an handler.
             Assert.AreEqual(0, callCount, "Must have called one (0) handler");
@@ -90,11 +93,11 @@ namespace Bonzai.Tests
             string expectedIdentifier = "123";
             Assert.IsEmpty(_router.GetHandlerDictionary(), "Router handler dictionary must be empty");
             
-            _router.Register<TestNetworkMessage>((message =>
+            _router.Register<TestNetworkMessage>((sender, message) =>
             {
                 TestContext.WriteLine("Triggered test message");
                 Assert.AreEqual(expectedIdentifier, message.Identifier);
-            }));
+            });
             Assert.IsNotEmpty(_router.GetHandlerDictionary());
             Assert.AreEqual(1, _router.GetHandlerDictionary().Count);
             
@@ -103,7 +106,7 @@ namespace Bonzai.Tests
             Type messageType = testMessage.GetType();
             string json = JsonConvert.SerializeObject(testMessage);
             string payload =  $"{messageType}|{json}";
-            int callCount = _router.ParseAndTrigger(payload);
+            int callCount = _router.ParseAndTrigger(_fakeConnection, payload);
             Debug.WriteLine(json, payload);
             
             // Now check that we triggered an handler.
@@ -113,7 +116,7 @@ namespace Bonzai.Tests
         [Test]
         public void Test_GetPayloadType()
         {
-            _router.Register<TestNetworkMessage>(d => {});
+            _router.Register<TestNetworkMessage>((sender, d) => {});
             
             TestNetworkMessage testMessage = new TestNetworkMessage("123");
             Type expectedPayloadType = testMessage.GetType();

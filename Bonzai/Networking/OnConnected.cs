@@ -2,9 +2,9 @@ using Fleck;
 
 namespace Bonzai.Networking
 {
-    public class OnConnected : BaseNetworkMessage
+    public class OnConnected : INetworkMessage
     {
-        public OnConnected(IWebSocketConnection sender) : base(sender)
+        public OnConnected()
         {
         }
     }

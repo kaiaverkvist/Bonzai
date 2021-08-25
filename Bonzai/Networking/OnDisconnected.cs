@@ -2,11 +2,11 @@ using Fleck;
 
 namespace Bonzai.Networking
 {
-    public class OnDisconnected : BaseNetworkMessage
+    public class OnDisconnected : INetworkMessage
     {
         public string Message { get; }
         
-        public OnDisconnected(IWebSocketConnection sender, string message = "bye") : base(sender)
+        public OnDisconnected(string message = "bye")
         {
             this.Message = message;
         }

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Bonzai.Extensions;
 using Bonzai.Networking;
+using Fleck;
 using Newtonsoft.Json;
 
 namespace Bonzai.Routing
@@ -29,7 +29,7 @@ namespace Bonzai.Routing
         /// </summary>
         /// <param name="handler"></param>
         /// <typeparam name="T">Type of network message</typeparam>
-        public void Register<T>(Action<T> handler) where T : INetworkMessage
+        public void Register<T>(Action<IWebSocketConnection, T> handler) where T : INetworkMessage
         {
             _handlers.Add(typeof(T), handler);
         }
@@ -46,9 +46,10 @@ namespace Bonzai.Routing
         /// <summary>
         /// Triggers a network message
         /// </summary>
+        /// <param name="sender"></param>
         /// <param name="message">network message</param>
         /// <returns>counter of handlers called</returns>
-        public int Trigger(object? message)
+        public int Trigger(IWebSocketConnection sender, object? message)
         {
             // Keep track of how many handlers were triggered.
             int callCount = 0;
@@ -60,7 +61,7 @@ namespace Bonzai.Routing
                 if(message != null && message.GetType() == handlerPair.Key)
                 {
                     var action = handlerPair.Value;
-                    action.DynamicInvoke(message);
+                    action.DynamicInvoke(sender, message);
                     
                     // Increment our call counter so we keep track of how many handlers have been called.
                     callCount++;
@@ -76,8 +77,9 @@ namespace Bonzai.Routing
         /// a valid Instance of a network message.
         /// Warns and returns if the message is invalid.
         /// </summary>
+        /// <param name="sender"></param>
         /// <param name="payloadJson"></param>
-        public int ParseAndTrigger(string payloadJson)
+        public int ParseAndTrigger(IWebSocketConnection sender, string payloadJson)
         {
             string[] payload = payloadJson.Split("|");
             string className = payload[0];
@@ -96,7 +98,7 @@ namespace Bonzai.Routing
 
             // Deserialize into 
             var instance = JsonConvert.DeserializeObject(json, payloadType);
-            return Trigger(instance);
+            return Trigger(sender, instance);
         }
         
         /// <summary>

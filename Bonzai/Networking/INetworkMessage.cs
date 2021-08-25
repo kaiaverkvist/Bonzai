@@ -8,6 +8,5 @@ namespace Bonzai.Networking
     /// </summary>
     public interface INetworkMessage
     {
-        IWebSocketConnection Sender();
     }
 }
