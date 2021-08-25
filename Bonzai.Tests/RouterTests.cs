@@ -1,11 +1,10 @@
+using System;
 using System.Diagnostics;
-using Bonzai.Networking;
 using Bonzai.Routing;
-using Fleck;
+using Newtonsoft.Json;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
-namespace BonzaiServer.Tests
+namespace Bonzai.Tests
 {
     public class RouterTests
     {
@@ -15,26 +14,6 @@ namespace BonzaiServer.Tests
         public void Setup()
         {
             _router = new Router();
-        }
-
-        private class TestNetworkMessage : BaseNetworkMessage
-        {
-            public string Identifier { get; set; }
-
-            public TestNetworkMessage(string identifier) : base(null)
-            {
-                Identifier = identifier;
-            }
-        }
-
-        private class FloatMessage : BaseNetworkMessage
-        {
-            public float X { get; set; }
-            
-            public FloatMessage(float x) : base(null)
-            {
-                this.X = x;
-            }
         }
         
         [Test]
@@ -71,7 +50,7 @@ namespace BonzaiServer.Tests
                 TestContext.WriteLine("Triggered test message");
                 Assert.AreEqual(expectedIdentifier, message.Identifier);
             }));
-            _router.Register<FloatMessage>((message =>
+            _router.Register<FloatNetworkMessage>((message =>
             {
                 TestContext.WriteLine("Triggered float message");
                 Assert.AreEqual(expectedX, message.X);
@@ -87,7 +66,7 @@ namespace BonzaiServer.Tests
             Assert.AreEqual(1, callCount, "Must have called one (1) handler");
             
             // Trigger our NO.2 message
-            FloatMessage floatTestMessage = new FloatMessage(expectedX);
+            FloatNetworkMessage floatTestMessage = new FloatNetworkMessage(expectedX);
             callCount = _router.Trigger(floatTestMessage);
             Assert.AreEqual(1, callCount, "Must have called one (1) handler");
         }
@@ -102,6 +81,47 @@ namespace BonzaiServer.Tests
             
             // Now check that we triggered an handler.
             Assert.AreEqual(0, callCount, "Must have called one (0) handler");
+        }
+        
+        
+        [Test]
+        public void Parse_And_Trigger_Test()
+        {
+            string expectedIdentifier = "123";
+            Assert.IsEmpty(_router.GetHandlerDictionary(), "Router handler dictionary must be empty");
+            
+            _router.Register<TestNetworkMessage>((message =>
+            {
+                TestContext.WriteLine("Triggered test message");
+                Assert.AreEqual(expectedIdentifier, message.Identifier);
+            }));
+            Assert.IsNotEmpty(_router.GetHandlerDictionary());
+            Assert.AreEqual(1, _router.GetHandlerDictionary().Count);
+            
+            // Create a test network message and try to trigger it.
+            TestNetworkMessage testMessage = new TestNetworkMessage(expectedIdentifier);
+            Type messageType = testMessage.GetType();
+            string json = JsonConvert.SerializeObject(testMessage);
+            string payload =  $"{messageType}|{json}";
+            int callCount = _router.ParseAndTrigger(payload);
+            Debug.WriteLine(json, payload);
+            
+            // Now check that we triggered an handler.
+            Assert.AreEqual(1, callCount, "Must have called one (1) handler");  
+        }
+
+        [Test]
+        public void Test_GetPayloadType()
+        {
+            _router.Register<TestNetworkMessage>(d => {});
+            
+            TestNetworkMessage testMessage = new TestNetworkMessage("123");
+            Type expectedPayloadType = testMessage.GetType();
+            
+            string messageJson = "Bonzai.Tests.TestNetworkMessage|{\"Identifier\":\"123\"}";
+            Type payloadType = _router.GetPayloadType(messageJson.Split("|")[0]);
+            
+            Assert.AreEqual(expectedPayloadType, payloadType, "Payload type must be equal to expected type");
         }
     }
 }

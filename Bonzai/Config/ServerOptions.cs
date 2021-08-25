@@ -5,7 +5,7 @@ namespace Bonzai.Config
     /// <summary>
     /// Defines Bonzai related server options.
     /// </summary>
-    /// We don't need to warn about this not being instantiated since we're a library.
+    // We don't need to warn about this not being instantiated since we're a library.
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ServerOptions
     {

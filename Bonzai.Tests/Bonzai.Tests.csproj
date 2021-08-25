@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\BonzaiServer\BonzaiServer.csproj" />
+      <ProjectReference Include="..\Bonzai\Bonzai.csproj" />
     </ItemGroup>
 
 </Project>

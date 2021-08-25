@@ -20,7 +20,8 @@ namespace Bonzai
         /// <summary>
         /// Holds an instance of the Bonzai router which responsible for handling all incoming network messages. 
         /// </summary>
-        public static Router Router; 
+        // ReSharper disable once MemberCanBePrivate.Global
+        public Router Router; 
         
         /// <summary>
         /// Creates an instance of the Bonzai server.
@@ -36,11 +37,18 @@ namespace Bonzai
             {
                 _webSocketServer.Certificate = options.GetCertificate();
             }
-            
+        }
+
+        /// <summary>
+        /// Starts Bonzai.
+        /// </summary>
+        public void Start()
+        {
             _webSocketServer.Start((socket) =>
             {
                 socket.OnOpen = () => Router.Trigger(new OnConnected(socket));
-                socket.OnClose = () => Router.Trigger(new OnDisconnected(socket, "quit"));
+                socket.OnClose = () => Router.Trigger(new OnDisconnected(socket, "closed"));
+                socket.OnMessage = data => Router.ParseAndTrigger(data);
             });
         }
 
