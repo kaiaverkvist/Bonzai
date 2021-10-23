@@ -1,4 +1,7 @@
-﻿using Bonzai.Config;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Bonzai.Config;
 using Bonzai.Networking;
 using Bonzai.Routing;
 using Fleck;
@@ -21,7 +24,9 @@ namespace Bonzai
         /// Holds an instance of the Bonzai router which responsible for handling all incoming network messages. 
         /// </summary>
         // ReSharper disable once MemberCanBePrivate.Global
-        public Router Router; 
+        public Router Router;
+
+        public List<IWebSocketConnection> Sockets = new List<IWebSocketConnection>();
         
         /// <summary>
         /// Creates an instance of the Bonzai server.
@@ -46,8 +51,16 @@ namespace Bonzai
         {
             _webSocketServer.Start((socket) =>
             {
-                socket.OnOpen = () => Router.Trigger(socket, new OnConnected());
-                socket.OnClose = () => Router.Trigger(socket, new OnDisconnected("closed"));
+                socket.OnOpen = () =>
+                {
+                    Sockets.Add(socket);
+                    Router.Trigger(socket, new OnConnected());
+                };
+                socket.OnClose = () =>
+                {
+                    Sockets.Remove(socket);
+                    Router.Trigger(socket, new OnDisconnected("closed"));
+                };
                 socket.OnMessage = data => Router.ParseAndTrigger(socket, data);
             });
         }
@@ -59,6 +72,46 @@ namespace Bonzai
         public WebSocketServer GetWebsocketServer()
         {
             return _webSocketServer;
+        }
+
+        /// <summary>
+        /// Sends a string message to a specific socket identifier.
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="message"></param>
+        public void SendMessageToId(Guid identifier, string message)
+        {
+            var socket = Sockets.FirstOrDefault(s => s.ConnectionInfo.Id == identifier);
+            socket?.Send(message);
+        }
+        
+        /// <summary>
+        /// Sends a byte array message to a specific socket identifier.
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="message"></param>
+        public void SendMessageToId(Guid identifier, byte[] message)
+        {
+            var socket = Sockets.FirstOrDefault(s => s.ConnectionInfo.Id == identifier);
+            socket?.Send(message);
+        }
+
+        /// <summary>
+        /// Sends a string message to all clients.
+        /// </summary>
+        /// <param name="message"></param>
+        public void SendToAll(string message)
+        {
+            Sockets.ForEach(s => s.Send(message));
+        } 
+        
+        /// <summary>
+        /// Sends a byte array message to all clients.
+        /// </summary>
+        /// <param name="message"></param>
+        public void SendToAll(byte[] message)
+        {
+            Sockets.ForEach(s => s.Send(message));
         }
     }
 }
